@@ -1,0 +1,6 @@
+config BR2_PACKAGE_MDEV_STATIC
+    bool "Busybox mdev static"
+    depends on BR2_INIT_BUSYBOX
+    depends on BR2_ROOTFS_DEVICE_CREATION_STATIC
+    help
+        Allows you to populate /dev without requiring devtmpfs support.
