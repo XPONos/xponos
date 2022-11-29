@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+config BR2_PACKAGE_UBOOT_ARCHIVE
+    bool "uboot-archive"
+    depends on BR2_PACKAGE_UBOOT_TOOLS
+    help
+        Archive files and directories in U-Boot-env.

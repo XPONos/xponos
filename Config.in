@@ -2,3 +2,4 @@
 
 #XPONOS config
 source "$BR2_EXTERNAL_XPONOS_PATH/package/mdev-static/Config.in"
+source "$BR2_EXTERNAL_XPONOS_PATH/package/uboot-archive/Config.in"
