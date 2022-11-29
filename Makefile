@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
 export BR2_EXTERNAL := $(CURDIR)
 export PATH         := $(CURDIR)/utils:$(PATH)
 

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
 config BR2_PACKAGE_MDEV_STATIC
     bool "Busybox mdev static"
     depends on BR2_INIT_BUSYBOX
