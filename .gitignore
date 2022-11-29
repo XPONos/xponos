@@ -1,2 +1,6 @@
 /.ccache
 /output*
+..gitignore.kate-swp
+
+# Proprietary files
+board/falcon/proprietary
