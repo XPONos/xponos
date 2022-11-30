@@ -3,71 +3,75 @@
 #!/bin/sh
 
 start() {
-	printf 'Starting mdev: '
+    printf 'Starting mdev: '
 
-	# Umount early static /dev
-	umount /dev/pts /dev/shm /dev >/dev/null 2>&1
+    (
+        # Check if command fails
+        set -e && set -o pipefail
 
-	# Mount tmpfs for /dev
-	mount -n -t tmpfs -o "exec,nosuid,mode=0755,size=64k" mdev-tmpfs /dev
+        # Umount early static /dev
+        umount /dev/pts /dev/shm /dev >/dev/null 2>&1 || true
 
-	# Enable hotplug event serialization
-	touch /dev/mdev.seq
+        # Mount tmpfs for /dev
+        mount -n -t tmpfs -o "exec,nosuid,mode=0755,size=64k" mdev-tmpfs /dev
 
-	# Create basic nodes
-	ln -snf /proc/self/fd /dev/fd
-	ln -snf fd/0 /dev/stdin
-	ln -snf fd/1 /dev/stdout
-	ln -snf fd/2 /dev/stderr
-	mkdir -m 0755 /dev/pts /dev/shm
+        # Enable hotplug event serialization
+        touch /dev/mdev.seq
 
-	# Set mdev as hotplug agent helper
-	echo /sbin/mdev > /proc/sys/kernel/hotplug
+        # Create basic nodes
+        ln -snf /proc/self/fd /dev/fd
+        ln -snf fd/0 /dev/stdin
+        ln -snf fd/1 /dev/stdout
+        ln -snf fd/2 /dev/stderr
+        mkdir -m 0755 /dev/pts /dev/shm
 
-	# Start scan and populate /dev
-	/sbin/mdev -s
+        # Set mdev as hotplug agent helper
+        echo /sbin/mdev > /proc/sys/kernel/hotplug
 
-	# Mount /dev/pts /dev/shm
-	mount /dev/pts
-	mount /dev/shm
+        # Start scan and populate /dev
+        /sbin/mdev -s
 
-	status=$?
-	if [ "$status" -eq 0 ]; then
-		echo "OK"
-	else
-		echo "FAIL"
-	fi
-	return "$status"
+        # Mount /dev/pts /dev/shm
+        mount /dev/pts
+        mount /dev/shm
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    return "$status"
 }
 
 stop() {
-	printf 'Stopping mdev: '
+    printf 'Stopping mdev: '
 
-	echo '' > /proc/sys/kernel/hotplug
+    echo '' > /proc/sys/kernel/hotplug
 
-	status=$?
-	if [ "$status" -eq 0 ]; then
-		rm -f "$PIDFILE"
-		echo "OK"
-	else
-		echo "FAIL"
-	fi
-	return "$status"
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    return "$status"
 }
 
 restart() {
-	stop
-	sleep 1
-	start
+    stop
+    sleep 1
+    start
 }
 
 case "$1" in
-	start|stop|restart)
-		"$1";;
-	reload)
-		# Restart, since there is no true "reload" feature.
-		restart;;
-	*)
-		echo "Usage: $0 {start|stop|restart|reload}"
-		exit 1
+    start|stop|restart)
+        "$1";;
+    reload)
+        # Restart, since there is no true "reload" feature.
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
 esac

@@ -3,29 +3,35 @@
 #!/bin/sh
 
 start() {
-	printf 'Set MIPS mtsched: '
+    printf 'Set MIPS mtsched: '
 
-	echo "t0 0x0" > /proc/mips/mtsched
-	echo "t1 0x1" > /proc/mips/mtsched
-	echo "v0 0x0" > /proc/mips/mtsched
+     (
+        # Check if command fails
+        set -e && set -o pipefail
 
-	status=$?
-	if [ "$status" -eq 0 ]; then
-		echo "OK"
-	else
-		echo "FAIL"
-	fi
-	return "$status"
+        # Set mtsched
+        echo "t0 0x0" > /proc/mips/mtsched
+        echo "t1 0x1" > /proc/mips/mtsched
+        echo "v0 0x0" > /proc/mips/mtsched
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    return "$status"
 }
 
 case "$1" in
-	start|reload|restart)
-		"$1";;
-	stop)
-		# Nothing to do
-		;;
-	*)
-		echo "Usage: $0 {start|stop|restart|reload}"
-		exit 1
+    start|reload|restart)
+        "$1";;
+    stop)
+        # Nothing to do
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
 esac
 
