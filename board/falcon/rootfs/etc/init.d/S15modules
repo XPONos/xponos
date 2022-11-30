@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+
+start() {
+    echo "Loading kernel modules"
+
+     (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Load kernel modules
+        insmod /usr/lib/modules/drv_ifxos.ko
+        insmod /usr/lib/modules/mod_sfp_i2c.ko debug=3
+        insmod /usr/lib/modules/mod_optic.ko debug=1
+        insmod /usr/lib/modules/mod_onu.ko
+        insmod /usr/lib/modules/mod_onu_netdev.ko
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "Load kernel modules: OK"
+    else
+        echo "Load kernel modules: FAIL"
+    fi
+    return "$status"
+}
+
+case "$1" in
+    start)
+        "$1";;
+    stop|reload|restart)
+        # Nothing to do
+        ;;
+    *)
+        echo "Usage: $0 {start}"
+        exit 1
+esac
+
