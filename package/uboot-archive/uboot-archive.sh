@@ -32,8 +32,17 @@ store_file() {
 export_file() {
     local uboot_variable=${1}
     local file_dest=${2}
+    local uboot_value
 
-    local encoded=$(fw_printenv "$uboot_variable" | sed "s/^$uboot_variable=//")
+    uboot_value=$(fw_printenv "$uboot_variable" 2>/dev/null)
+    local exit_value=$?
+
+    if [ $exit_value -ne 0 ]; then
+        echo "U-Boot variable \"$uboot_variable\" does not exist"
+        exit 1
+    fi
+
+    local encoded=$(echo "$uboot_value" | sed "s/^$uboot_variable=//")
     echo "$encoded" | tr $NEWLINE_ESCAPE '\n' | uudecode -o "$file_dest"
 }
 
@@ -66,7 +75,7 @@ export_dir() {
 case "$1" in
     store)
         if [ "$#" -ne 3 ] && [ "$#" -ne 4 ] ; then
-            echo "Usage: $0 store <file> <uboot_variable> <optional_output_name>"
+            echo "Usage: $0 $1 <file> <uboot_variable> <optional_output_name>"
             exit 1
         fi
 
@@ -74,7 +83,7 @@ case "$1" in
         ;;
     export)
         if [ "$#" -ne 3 ]; then
-            echo "Usage: $0 export <uboot_variable> <file_dest>"
+            echo "Usage: $0 $1 <uboot_variable> <file_dest>"
             exit 1
         fi
 
@@ -82,7 +91,7 @@ case "$1" in
         ;;
     store-dir)
         if [ "$#" -ne 3 ] && [ "$#" -ne 4 ] ; then
-            echo "Usage: $0 store-path <path> <uboot_variable> <optional_output_name>"
+            echo "Usage: $0 $1 <path> <uboot_variable> <optional_output_name>"
             exit 1
         fi
 
@@ -90,13 +99,13 @@ case "$1" in
         ;;
     export-dir)
         if [ "$#" -ne 3 ]; then
-            echo "Usage: $0 export-path <uboot_variable> <path_dest>"
+            echo "Usage: $0 $1 <uboot_variable> <path_dest>"
             exit 1
         fi
 
         export_dir ${@#"$1"}
         ;;
     *)
-        echo "Usage: $0 store|export|store-path|export-path"
+        echo "Usage: $0 store|export|store-dir|export-dir"
         exit 1
 esac
