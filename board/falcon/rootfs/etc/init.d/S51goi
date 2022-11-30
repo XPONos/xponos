@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    echo "Loading GOI config to BOSA"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Export GOI configs
+        export_goi
+
+        # Enable BOSA mode
+        /opt/lantiq/bin/optic optic_mode_set 2
+
+        # Load config to BOSA
+        /opt/lantiq/bin/optic config_apply
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "Load GOI config: OK"
+    else
+        echo "Load GOI config: FAIL"
+    fi
+    return "$status"
+}
+
+case "$1" in
+    start)
+        "$1";;
+    stop)
+        # This is not critical, even if it is not done for some reason it does not
+        # cause problems with the GOI config because the update is still handled by omcid.
+        # We're actually just doing one more backup here to prevent disasters.
+
+        store_goi;;
+    reload|restart)
+        # Nothing to do
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
+
