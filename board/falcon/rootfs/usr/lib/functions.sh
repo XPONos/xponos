@@ -13,7 +13,7 @@ export_goi() {
 
         # Export GOI config from uboot-env
         uboot-archive export-dir goi_config /tmp/goi_config
-        uboot-archive export-dir goi_config_corr /tmp/goi_config_corr
+        uboot-archive export-dir goi_config_corr /tmp/goi_config_corr || true
     )
 
     return $?
