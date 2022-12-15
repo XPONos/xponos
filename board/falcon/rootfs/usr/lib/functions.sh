@@ -43,3 +43,42 @@ store_goi() {
     fi
     return "$status"
 }
+
+ascii_to_hex() {
+    echo -ne "$1" | xxd -p | sed 's/../0x& /g' | xargs
+}
+
+get_setting() {
+    fw_printenv $1 2>&- | cut -f2 -d=
+}
+
+get_setting_def() {
+    local result=$(get_setting $1)
+
+    if [ -z $result ]; then
+        echo "$2"
+    else
+        echo "$result"
+    fi
+}
+
+get_setting_boolint() {
+    local result=$(get_setting_def $1 0)
+
+    if [ "$result" -ne 1 ]; then
+        echo 0
+    else
+        echo "$result"
+    fi
+
+}
+
+call_onu() {
+    local output=$(/opt/lantiq/bin/onu $*)
+    local error_code=${output%% *}
+
+    if [ "$error_code" != "errorcode=0" ]; then
+        echo "call_onu $* failed: $output"
+    fi
+}
+

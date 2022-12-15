@@ -1,0 +1,93 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    echo "Init GPON ONU"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Get GPON SN
+        local serial_number=$(get_setting_def gpon_serial_number "TEMP00000000")
+
+        # Get GPON ploam
+        local ploam=$(get_setting_def gpon_ploam "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+
+        # Get ploam emergency stop state
+        # This is set by omcid, it shouldn't be touched by the user
+        local emergency_stop_state=$(get_setting_boolint ploam_emergency_stop_state)
+
+        # Get OLT type
+        # This is set by omcid, it shouldn't be touched by the user
+        local olt_type=$(get_setting_def olt_type 0)
+
+        # Get GOI calibrated
+        # This is set by ocal, it shouldn't be touched by the user
+        local goi_calibrated=$(get_setting_boolint goi_calibrated)
+
+         # Convert ploam in hex
+        local ploam_hex=$(ascii_to_hex "$ploam")
+
+        echo "GPON ONU: Set serial number to $serial_number"
+        echo "GPON ONU: Set ploam to $ploam"
+
+        # Set GPON SN and PLOAM to EEPROM
+        /opt/lantiq/bin/sfp_i2c -i8 -s "$serial_number"
+        /opt/lantiq/bin/sfp_i2c -i11 -s "$ploam_hex"
+
+        # Set ONU GPON serial number
+        call_onu ploam_init
+        call_onu gtc_serial_number_set "$serial_number"
+
+        # Set ONU GPON ploam configs
+        call_onu gtc_cfg_set 3600000 5 9 10 255 3 255 3 0 11000 100 $emergency_stop_state "$ploam_hex"
+
+        # Init ONU GPON GTC
+        call_onu gtc_init 0 0 0 0 0 0 0 0
+
+        # Enable ONU GPON dying gasp
+        call_onu gtc_dying_gasp_cfg_set 0 0 "0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00"
+
+        # Set ONU GPON psm configs
+        call_onu psm_cfg_set 0 0 0 0 0 0 0 0 0 0
+
+        # Load ONU GPON phy firmware
+        call_onu lan_gphy_firmware_download "phy11g.bin"
+
+        # Init ONU GPON GPE
+        call_onu gpe_init "falcon_gpe_fw.bin" 1 1 1 1 1 1 1 1 1 1 1 1 1 0 4 0 0 $olt_type
+
+        # Set ONU GPON GPE nmea configs
+        call_onu gpe_tod_nmea_cfg_set 1 19
+
+        # Set ONU GPON GPE shared buffer configs
+        call_onu gpe_shared_buffer_cfg_set 1024 12288 12288 12288 12288
+
+        # Set ONU GPON GTC watchdog if GOI is calibrated
+        if [ "$goi_calibrated" -eq 1 ]; then
+            call_onu gtc_watchdog_set 1
+        fi
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "Init GPON ONU: OK"
+    else
+        echo "Init GPON ONU: FAIL"
+    fi
+    return "$status"
+}
+
+case "$1" in
+    start)
+        "$1";;
+    stop)
+        /opt/lantiq/bin/onu onu_line_enable_set 0;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
+
