@@ -34,10 +34,6 @@ start() {
         echo "GPON ONU: Set serial number to $serial_number"
         echo "GPON ONU: Set ploam to $ploam"
 
-        # Set GPON SN and PLOAM to EEPROM
-        /opt/lantiq/bin/sfp_i2c -i8 -s "$serial_number"
-        /opt/lantiq/bin/sfp_i2c -i11 -s "$ploam_hex"
-
         # Set ONU GPON serial number
         call_onu ploam_init
         call_onu gtc_serial_number_set "$serial_number"
