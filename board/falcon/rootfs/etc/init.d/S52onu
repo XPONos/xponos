@@ -11,10 +11,10 @@ start() {
         set -e && set -o pipefail
 
         # Get GPON SN
-        local serial_number=$(get_setting_def gpon_serial_number "TEMP00000000")
+        local serial_number=$(get_setting_def onu_serial "TEMP00000000")
 
         # Get GPON ploam
-        local ploam=$(get_setting_def gpon_ploam "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+        local ploam=$(get_setting_def onu_ploam "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
 
         # Get ploam emergency stop state
         # This is set by omcid, it shouldn't be touched by the user
