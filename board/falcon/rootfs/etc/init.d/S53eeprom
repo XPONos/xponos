@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    echo "Init SFP EEPROM"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Get SFP EEPROM vendor name
+        local vendor_name=$(get_setting_def sfp_vendor_name "XPONOS")
+
+        # Get SFP EEPROM part name
+        local part_name=$(get_setting_def sfp_part_name "Falcon-SFP")
+
+        # Get SFP EEPROM vendor rev
+        local vendor_rev=$(get_setting_def sfp_vendor_rev "0")
+
+        # Get OMCI equipment ID
+        local equip_id=$(get_setting_def omci_equip_id "XSFP")
+
+        # Get OMCI vendor ID
+        local vendor_id=$(get_setting_def omci_equip_id "XPON")
+
+        # Reset to default EEPROM
+        /opt/lantiq/bin/sfp_i2c -d yes
+
+        # Set EEPROM values
+        /opt/lantiq/bin/sfp_i2c -i 0 -s "$vendor_name"
+        /opt/lantiq/bin/sfp_i2c -i 1 -s "$part_name"
+        /opt/lantiq/bin/sfp_i2c -i 2 -s "$vendor_rev"
+        /opt/lantiq/bin/sfp_i2c -i 6 -s "$equip_id"
+        /opt/lantiq/bin/sfp_i2c -i 7 -s "$vendor_id"
+
+        # Reset unused EEPROM values
+        /opt/lantiq/bin/sfp_i2c -i 8 -s ""
+        /opt/lantiq/bin/sfp_i2c -i 9 -s ""
+        /opt/lantiq/bin/sfp_i2c -i 10 -s ""
+        /opt/lantiq/bin/sfp_i2c -i 11 -s ""
+
+        # Set EEPROM 1 as current
+        /opt/lantiq/bin/sfp_i2c -e 1
+
+        # Enable EEPROM processing
+        /opt/lantiq/bin/sfp_i2c -P enable
+
+        # Start EEPROM daemon
+        /opt/lantiq/bin/sfp_i2c -a > /dev/console &
+
+        # Wait some times for EEPROM daemon
+        sleep 3
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "Init SFP EEPROM: OK"
+    else
+        echo "Init SFP EEPROM: FAIL"
+    fi
+    return "$status"
+}
+
+case "$1" in
+    start)
+        "$1";;
+    stop)
+        killall sfp_i2c;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
