@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    echo "Init SFP GPIO pins"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Default GPIO pins
+        local tx_disable_pin=1
+        local tx_fault_pin=2
+        local rx_los_pin=5
+
+        # Get ASC0 pin mode
+        local asc0_mode=$(get_setting_def asc0 1)
+
+        # Set ONU ASC mode and disable tx fault pin with mode == 0
+        if [ "$asc0_mode" = 0 ]; then
+            /opt/lantiq/bin/onu onu_asc0_pin_cfg_set 1
+            tx_fault_pin="255"
+        else
+            /opt/lantiq/bin/onu onu_asc0_pin_cfg_set 2
+        fi
+
+        # Set tx fault and tx disable pins
+        /opt/lantiq/bin/optic optic_pin_cfg_set $tx_disable_pin $tx_fault_pin
+
+        # Set rx los pin
+        /opt/lantiq/bin/onu onu_los_pin_cfg_set $rx_los_pin
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "Init SFP GPIO pins: OK"
+    else
+        echo "Init SFP GPIO pins: FAIL"
+    fi
+    return "$status"
+}
+
+case "$1" in
+    start)
+        "$1";;
+    *)
+        echo "Usage: $0 {start}"
+        exit 1
+esac
