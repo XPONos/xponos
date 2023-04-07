@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    # Wait full ONU boot
+    sleep 60
+    
+    echo "Started SSB RAR check"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Get RAR store
+        local rar_store=$(get_setting_def rar "")
+        local rar_store_test=`echo $store | grep "rar="`
+
+        # Apply RAR if present
+        if [ -n "$rar_store_test" ]; then
+            local rar=${rar_store_test#*rar='"'}
+		    rar=${rar%%'"'}
+            call_onu onu_rar_set "$rar"
+        fi
+
+        # SSB check loop
+        while true; do
+            local ssb_result=$(/opt/lantiq/bin/onu onu_ssb_check 8 0)
+            local ssb_result_test=`echo $ssb_result | grep "damaged_cnt=0"`
+
+            if [ -z "$ssb_result_test" ]; then
+                # Found SSB error, need apply RAR
+                fw_setenv ssb_error_found 1
+                
+                # Get RAR from ONU
+                local rar_result=$(/opt/lantiq/bin/onu onu_rar_get)
+
+                # Save RAR to uboot env
+                fw_setenv rarr ${rar_result#*rar=}
+            fi
+
+            sleep 1
+        done
+    )
+}
+
+case "$1" in
+    start)
+        "$1" &;;
+    *)
+        echo "Usage: $0 {start}"
+        exit 1
+esac
