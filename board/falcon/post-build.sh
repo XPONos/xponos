@@ -7,6 +7,8 @@ ln -sfr "${TARGET_DIR}/usr/lib/libc.so.0" "${TARGET_DIR}/usr/lib/libm.so.0"
 ln -sfr "${TARGET_DIR}/usr/lib/libc.so.1" "${TARGET_DIR}/usr/lib/libm.so.1"
 ln -sfr "${TARGET_DIR}/usr/lib/libc.so.0" "${TARGET_DIR}/usr/lib/libpthread.so.0"
 ln -sfr "${TARGET_DIR}/usr/lib/libc.so.1" "${TARGET_DIR}/usr/lib/libpthread.so.1"
+ln -sfr "${TARGET_DIR}/usr/lib/libc.so.1" "${TARGET_DIR}/usr/lib/librt.so.0"
+
 
 # Generate symlink for GOI config
 curr_dir=$(pwd)
