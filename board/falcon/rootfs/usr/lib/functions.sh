@@ -48,6 +48,10 @@ ascii_to_hex() {
     echo -ne "$1" | xxd -p | sed 's/../0x& /g' | xargs
 }
 
+mac_to_hex() {
+    echo "$1" | sed -e 's/^/0x/' -e 's/:/ 0x/g'
+}
+
 get_setting() {
     fw_printenv $1 2>&- | cut -f2 -d=
 }
@@ -82,3 +86,14 @@ call_onu() {
     fi
 }
 
+netmask2cidr() {
+    local bits=0
+    local octet=0
+    
+    for octet in $(echo $1| sed 's/\./ /g'); do 
+        local binbits=$(echo "obase=2; ibase=10; ${octet}"| bc | sed 's/0//g') 
+        let bits+=${#binbits}
+    done
+
+    echo "$bits"
+}

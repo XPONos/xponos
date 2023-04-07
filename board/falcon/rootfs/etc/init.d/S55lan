@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    echo "Init SFP LAN"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Get MAC address
+        local mac_address=$(get_setting_def ethaddr "ac:9a:96:00:00:00")
+
+        # Get IP address
+        local ip_address=$(get_setting_def ipaddr "192.168.1.10")
+
+        # Get netmask
+        local netmask=$(get_setting_def netmask "255.255.255.0")
+
+        # Calculate IP address CIDR form
+        local ip_address_cidr="${ip_address}/$(netmask2cidr ${netmask})"
+
+        # Calculate MAC address HEX
+        local mac_address_hex=$(mac_to_hex "$mac_address")
+
+        # Get Ethernet flow control mode
+        local flow_control_mode=$(get_setting_def ethernet_flowcontrol 4)
+
+        # Get Ethernet MTU size
+        local mtu_size=$(get_setting_def ethernet_mtu 2000)
+    
+        # Export MDIO Falcon chip pins to disable
+        echo 7 > /sys/class/gpio/export
+	    echo 8 > /sys/class/gpio/export
+
+        # Init GPON ONU LAN
+        call_onu lan_init
+
+        # Set synchronous Ethernet
+        call_onu lan_synce_pin_cfg_set -1 -1
+        call_onu lan_synce_cfg_set 1 0
+
+        # Setup LAN config: FW Mode 11G, MDIO data rate 2.5MHz
+        call_onu lan_cfg_set 2 2 0 1
+
+        # Init LAN netdev
+        call_onu lan_netdev_os_init
+
+        # Setup LAN port 0 (SFP interface)
+        # lan_mode_gmux: LAN_MODE_GMUX_SGMII
+        # lan_mode_interface: LAN_MODE_TBI_AUTODETECT
+        # lan_mode_duplex: LAN_PHY_MODE_DUPLEX_FULL
+        # lan_mode_speed: LAN_MODE_SPEED_2500
+        # sgmii_autoneg_mode: SGMII_SERDES_ANEG
+        call_onu lan_port_cfg_set 0 1 -1 4 15 1 $flow_control_mode 5 0 0 $mtu_size 1 3 0 0
+
+        # Setup LAN pause frames MAC source address
+        call_onu lan_pause_mac_cfg_set 0 0xAC 0x9A 0x96 0x00 0x01 0x00
+
+        # Enable MAC address processing
+        /opt/lantiq/bin/sfp_i2c -c
+
+        # Set LAN port 0 (SFP interface) MAC address
+        call_onu lan_port_mac_cfg_set 0 "$mac_address_hex"
+
+        # Set IP & MAC address for LCT0 interface
+        ip addr add "$ip_address_cidr" dev lct0
+        ip link set address "$mac_address" dev lct0
+        ip link set dev lct0 up
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "Init SFP LAN: OK"
+    else
+        echo "Init SFP LAN: FAIL"
+    fi
+    return "$status"
+}
+
+case "$1" in
+    start)
+        "$1";;
+    stop)
+        call_onu lan_port_disable 0;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
