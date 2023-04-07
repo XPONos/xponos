@@ -14,6 +14,11 @@ export_goi() {
         # Export GOI config from uboot-env
         uboot-archive export-dir goi_config /tmp/goi_config
         uboot-archive export-dir goi_config_corr /tmp/goi_config_corr || true
+        
+        # Generate empty goi_config_corr if needed
+        mkdir -p /tmp/goi_config_corr
+        touch /tmp/goi_config_corr/goi_table_rssi1490_corr.csv 
+        touch /tmp/goi_config_corr/goi_table_text_corr.csv
     )
 
     return $?
