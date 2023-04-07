@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    echo "Started optical calibration"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Get ASC0 pin mode
+        local asc0_mode=$(get_setting_def asc0 1)
+
+        # Start optical calibration daemon
+        /opt/lantiq/bin/ocal &
+
+        # Set TX fault pin down if not used
+        if [ $asc0_mode == "1" ]; then
+            echo 2 > /sys/class/gpio/export
+            echo low > /sys/class/gpio/gpio2/direction
+            echo 32 > /sys/class/gpio/export
+            echo low > /sys/class/gpio/gpio32/direction  
+        fi
+    )
+}
+
+case "$1" in
+    start)
+        "$1";;
+    *)
+        echo "Usage: $0 {start}"
+        exit 1
+esac
