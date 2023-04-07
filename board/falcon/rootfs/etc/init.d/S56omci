@@ -1,0 +1,82 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+. /usr/lib/functions.sh
+
+start() {
+    echo "Init GPON OMCI"
+
+    (
+        # Check if command fails
+        set -e && set -o pipefail
+
+        # Start ubus daemon server
+        ubusd &
+
+        # Start OMCI usock server
+        /opt/lantiq/bin/omci_usock_server &
+        while true; do
+		    [ -e /tmp/omci_usock ] && break
+	    done
+
+        # Get OMCI HW version
+        local hw_ver=$(get_setting_def omci_hw_ver "0000000000000")
+
+        # Get OMCI OMCC version
+        local omcc_ver=$(get_setting_def omci_hw_ver "160")
+
+        # Get IOP mask
+        local iop_mask=$(get_setting_def omci_iop_mask "0")
+
+        # Get MIB file
+        local mib_file=$(get_setting_def mib_file_custom "/tmp/auto_generated_mib.ini")
+
+        # Generate MIB file
+        sed "s/256 0 XPON 0000000000000/256 0 XPON ${hw_ver}/" /etc/mibs/default.ini > /tmp/auto_generated_mib.ini
+
+        # Start OMCI daemon
+        /opt/lantiq/bin/omcid -d3 -p$mib_file -o$omcc_ver -i$iop_mask -g1 -l/tmp/omci_debug &
+
+        # Wait some times for OMCI daemon
+        sleep 3
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "Init GPON OMCI: OK"
+    else
+        echo "Init GPON OMCI: FAIL"
+    fi
+    return "$status"
+}
+
+stop() {
+    printf 'Stopping GPON OMCI: '
+    (
+        killall -q omcid
+        killall -q omci_usock_server
+        killall -q ubusd
+    )
+
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    return "$status"
+}
+
+restart() {
+    stop
+    sleep 5
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
