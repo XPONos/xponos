@@ -34,11 +34,33 @@ start() {
         # Generate MIB file
         sed "s/256 0 XPON 0000000000000/256 0 XPON ${hw_ver}/" /etc/mibs/default.ini > /tmp/auto_generated_mib.ini
 
+        # Get active OMCI image
+        local active_sw=$(get_setting_def omci_active_sw 0)
+
+        # Fake OMCI active image
+        # XPONOS doesn't suppot multi image boot, we send fake data via OMCI
+        fw_setenv "omci_sw${active_sw}_valid" 1
+        fw_setenv "omci_commit_sw" $active_sw
+
+        # Generate fake /proc/mtd
+        if [ "$active_sw" = 0 ]; then
+            sed "s/image0/image1/" /proc/mtd > /tmp/fake_mtd
+        else
+            sed "s/image1/image0/" /proc/mtd > /tmp/fake_mtd
+        fi
+        
+        # Mount fake /proc/mtd for OMCID
+        mount --bind /tmp/fake_mtd /proc/mtd
+
         # Start OMCI daemon
         /opt/lantiq/bin/omcid -d3 -p$mib_file -o$omcc_ver -i$iop_mask -g1 -l/tmp/omci_debug &
 
         # Wait some times for OMCI daemon
         sleep 3
+
+        # Remove fake /proc/mtd
+        umount /proc/mtd
+        rm -f /tmp/fake_mtd
     )
 
     status=$?
