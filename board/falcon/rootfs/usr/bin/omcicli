@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+#!/bin/sh
+
+cmd_cli() {
+    echo "$*" > /tmp/pipe/omci_0_cmd
+    cat /tmp/pipe/omci_0_ack
+}
+
+loop_cli() {
+    printf 'XPONOS - OMCI CLI\n\n'
+
+    while true; do
+        local cmd=""
+        read -p "OMCI> " cmd
+
+        cmd_cli "$cmd"
+        echo
+    done
+}
+
+if [ $# -eq 0 ]; then
+    loop_cli
+else
+    cmd_cli "$*"
+fi
