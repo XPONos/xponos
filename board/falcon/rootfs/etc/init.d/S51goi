@@ -13,6 +13,9 @@ start() {
         # Export GOI configs
         export_goi
 
+        # Mount GOI to /etc/optic
+        mount /tmp/goi_config/etc/optic /etc/optic
+
         # Enable BOSA mode
         /opt/lantiq/bin/optic optic_mode_set 2
 
@@ -29,15 +32,18 @@ start() {
     return "$status"
 }
 
-case "$1" in
-    start)
-        "$1";;
-    stop)
-        # This is not critical, even if it is not done for some reason it does not
-        # cause problems with the GOI config because the update is still handled by omcid.
-        # We're actually just doing one more backup here to prevent disasters.
+stop() {
+    # This is not critical, even if it is not done for some reason it does not
+    # cause problems with the GOI config because the update is still handled by omcid.
+    # We're actually just doing one more backup here to prevent disasters.
 
-        store_goi;;
+    store_goi
+    umount /etc/optic
+}
+
+case "$1" in
+    start|stop)
+        "$1";;
     reload|restart)
         # Nothing to do
         ;;
