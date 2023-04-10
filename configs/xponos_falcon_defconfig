@@ -3,11 +3,10 @@ BR2_mips_32r2=y
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
 BR2_TOOLCHAIN_EXTERNAL_DOWNLOAD=y
-BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/XPONos/prebuilt_toolchain/releases/download/mips32r2-k34kc-xponos-linux-uclibc-gcc-12_2.1/mips32r2-k34kc-xponos-linux-uclibc-gcc-12_2.tar.xz"
+BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/XPONos/prebuilt_toolchain/releases/download/mips-xponos-linux-uclibc_sdk-buildroot_2023.02/mips-xponos-linux-uclibc_sdk-buildroot_2023.02.tar.gz"
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="mips-xponos-linux-uclibc"
 BR2_TOOLCHAIN_EXTERNAL_HEADERS_3_10=y
-BR2_TOOLCHAIN_EXTERNAL_WCHAR=y
-BR2_TOOLCHAIN_EXTERNAL_HAS_SSP=y
+# BR2_TOOLCHAIN_EXTERNAL_HAS_THREADS_DEBUG is not set
 BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_XPONOS_PATH)/board/falcon/patches"
 BR2_TARGET_GENERIC_HOSTNAME="xponos-falcon"
 BR2_TARGET_GENERIC_ISSUE="Welcome to XPONos"
