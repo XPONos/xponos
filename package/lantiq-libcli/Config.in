@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+config BR2_PACKAGE_LANTIQ_LIBCLI
+    bool "Lantiq common CLI library"
+    
+if BR2_PACKAGE_LANTIQ_LIBCLI   
+
+config BR2_PACKAGE_LANTIQ_LIBCLI_CONSOLE
+    bool "Add console interface support"
+    default y
+    
+config BR2_PACKAGE_LANTIQ_LIBCLI_PIPE
+    bool "Add pipe interface support"
+    default y
+    
+config BR2_PACKAGE_LANTIQ_LIBCLI_MAX_PIPE
+    int "Max pipes number (default 3)"
+    depends on BR2_PACKAGE_LANTIQ_LIBCLI_PIPE
+    default 3
+    
+config BR2_PACKAGE_LANTIQ_LIBCLI_BUFFER_OUT
+    bool "Enable if the user CLI functions are using a mem buffer for printout"
+    default n
+    
+config BR2_PACKAGE_LANTIQ_LIBCLI_FILE_OUT
+    bool "Enable if the user CLI functions are using a file fd for printout"
+    default y 
+    
+config BR2_PACKAGE_LANTIQ_LIBCLI_ERROR
+    bool "Enable error output"
+    default y  
+    
+config BR2_PACKAGE_LANTIQ_LIBCLI_DEBUG
+    bool "Enable verbose debug output"
+    default y 
+    
+endif

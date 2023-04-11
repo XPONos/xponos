@@ -4,3 +4,4 @@
 source "$BR2_EXTERNAL_XPONOS_PATH/package/mdev-static/Config.in"
 source "$BR2_EXTERNAL_XPONOS_PATH/package/uboot-archive/Config.in"
 source "$BR2_EXTERNAL_XPONOS_PATH/package/lantiq-ifxos/Config.in"
+source "$BR2_EXTERNAL_XPONOS_PATH/package/lantiq-libcli/Config.in"
