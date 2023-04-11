@@ -21,4 +21,9 @@ else
 LANTIQ_IFXOS_CONF_OPTS+=--disable-shared --enable-static
 endif
 
+define LANTIQ_IFXOS_INSTALL_STAGING_CMDS
+	$(TARGET_MAKE_ENV) $(MAKE) DESTDIR=$(STAGING_DIR) install -C $(@D)
+	cp -r $(@D)/src/include $(STAGING_DIR)/usr/include/ifxos
+endef
+
 $(eval $(autotools-package))
