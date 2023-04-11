@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MPL-2.0-no-copyleft-exception
+
+config BR2_PACKAGE_LANTIQ_IFXOS
+    bool "Lantiq IFXOS abstraction layer"
+    
+if BR2_PACKAGE_LANTIQ_IFXOS    
+    
+config BR2_PACKAGE_LANTIQ_IFXOS_SHARED_LIB
+    bool "Enable IFXOS build as shared lib"
+    default n
+    
+endif
