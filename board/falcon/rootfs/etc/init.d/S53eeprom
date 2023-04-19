@@ -23,7 +23,7 @@ start() {
         local equip_id=$(get_setting_def omci_equip_id "XSFP")
 
         # Get OMCI vendor ID
-        local vendor_id=$(get_setting_def omci_equip_id "XPON")
+        local vendor_id=$(get_setting_def omci_vendor_id "XPON")
 
         # Reset to default EEPROM
         /opt/lantiq/bin/sfp_i2c -d yes
