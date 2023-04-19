@@ -23,7 +23,7 @@ start() {
         local hw_ver=$(get_setting_def omci_hw_ver "0000000000000")
 
         # Get OMCI OMCC version
-        local omcc_ver=$(get_setting_def omci_hw_ver "160")
+        local omcc_ver=$(get_setting_def omci_omcc_ver "160")
 
         # Get IOP mask
         local iop_mask=$(get_setting_def omci_iop_mask "0")
