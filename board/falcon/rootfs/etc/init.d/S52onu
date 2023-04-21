@@ -3,6 +3,19 @@
 #!/bin/sh
 . /usr/lib/functions.sh
 
+generate_ploam_password_hex() {
+    local ploam_string=$1
+    local ploam_len=${#ploam_string}
+
+    # We have to add NUL (0x00) characters to the end of the ploam if it is less than 10 characters
+    for ((i=$ploam_len; i < 10; i++)); do 
+        ploam_string="${ploam_string}\x00"
+    done
+
+    # Return ploam in hex
+    ascii_to_hex "$ploam_string"
+}
+
 start() {
     echo "Init GPON ONU"
 
@@ -29,7 +42,7 @@ start() {
         local goi_calibrated=$(get_setting_boolint goi_calibrated)
 
          # Convert ploam in hex
-        local ploam_hex=$(ascii_to_hex "$ploam")
+        local ploam_hex=$(generate_ploam_password_hex "$ploam")
 
         echo "GPON ONU: Set serial number to $serial_number"
         echo "GPON ONU: Set ploam to $ploam"
